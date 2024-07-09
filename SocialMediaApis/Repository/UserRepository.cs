@@ -33,7 +33,7 @@ namespace SocialMediaApis.Repository
                 }
 
                 //Check Username And EmailID Exits
-                var CheckExitsResult = _context.users.Where(x=>x.UserName == registration.UserName || x.EmailId == registration.EmailId).Select(x=> new {x.UserName,x.EmailId}).FirstOrDefault();
+                var CheckExitsResult = _context.users.Where(x=>x.UserName == ((registration.UserName).ToLower()) || x.EmailId == ((registration.EmailId).ToLower())).Select(x=> new {x.UserName,x.EmailId}).FirstOrDefault();
                 if (CheckExitsResult != null)
                 {
                     if(CheckExitsResult.UserName == registration.UserName)
@@ -62,11 +62,17 @@ namespace SocialMediaApis.Repository
                         var RegistrationResult = new User();              
                         RegistrationResult.FirstName = registration.FirstName;
                         RegistrationResult.LastName = registration.LastName;
-                        RegistrationResult.EmailId = registration.EmailId;
-                        RegistrationResult.UserName = registration.UserName;
+
+                        //Store the EmailId And UserName casesenstive
+                        RegistrationResult.EmailId = (registration.EmailId).ToLower();
+                        RegistrationResult.UserName = (registration.UserName).ToLower();
                         RegistrationResult.Password = CommonMethods.Encryptword(registration.Password);
+                        RegistrationResult.CreateDate = DateTime.UtcNow;
+                        RegistrationResult.UpdateDate = DateTime.UtcNow;
+                        RegistrationResult.IsDeleted = false;
+                        RegistrationResult.IsAdmin = false;
                         _context.users.Add(RegistrationResult);
-                        _context.SaveChangesAsync();
+                        _context.SaveChanges();
                         return new JsonModel
                         {
                             Data = registration,
@@ -86,7 +92,11 @@ namespace SocialMediaApis.Repository
             }
             catch(Exception ex)
             {
-                throw ex;
+                return new JsonModel
+                {
+                    Message = "Registration Error Message" + ex.Message,
+                    StatusCode = StatusCodes.Status406NotAcceptable,
+                };
             }
         }
     }
