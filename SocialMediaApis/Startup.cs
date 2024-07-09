@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using SocialMediaApis.DBContext;
 using Microsoft.EntityFrameworkCore;
-using SocialMediaApis.Models;
-using SocialMediaApis.CommonMethod;
 using SocialMediaApis.Repository;
 
 namespace SocialMedia
@@ -25,14 +19,13 @@ namespace SocialMedia
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllers();
             services.AddHttpContextAccessor();
 
-            services.AddScoped<CommonMethods>();
             services.AddScoped<IUserRepository, UserRepository>();
+
             // Add Swagger configuration
             services.AddSwaggerGen(c =>
             {
@@ -45,8 +38,8 @@ namespace SocialMedia
 
             // Retrieve connection string from app settings and configure DbContext
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContextPool<UserDbContext>(option =>
-                option.UseSqlServer(connectionString));
+            services.AddDbContextPool<UserDbContext>(options =>
+                options.UseSqlServer(connectionString));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -63,10 +56,11 @@ namespace SocialMedia
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Social Media");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SocialMedia V1");
             });
 
             app.UseRouting();
@@ -75,7 +69,10 @@ namespace SocialMedia
             app.UseAuthentication();
             app.UseAuthorization();
 
-            
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }

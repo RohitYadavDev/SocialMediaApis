@@ -15,13 +15,13 @@ namespace SocialMediaApis.Models
         public string MobileNumber { get; set; }
         public string UserName { get;set; }
         public string Password { get;set;}
-        public string ProfileDescription { get;set; }
-        public string ProfileImage { get; set; }
-        public string BackgroundImage { get;set; }
+        public string? ProfileDescription { get;set; }
+        public string? ProfileImage { get; set; }
+        public string? BackgroundImage { get;set; }
         public bool IsAdmin { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime CreateDate { get;set ; }
         public DateTime UpdateDate { get;set ; }
-        public int DeletedBy { get;set; }
+        public int? DeletedBy { get;set; }
     }
 }
