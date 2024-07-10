@@ -36,23 +36,24 @@ namespace SocialMediaApis.Repository
                 var CheckExitsResult = _context.users.Where(x=>x.UserName == ((registration.UserName).ToLower()) || x.EmailId == ((registration.EmailId).ToLower())).Select(x=> new {x.UserName,x.EmailId}).FirstOrDefault();
                 if (CheckExitsResult != null)
                 {
-                    if(CheckExitsResult.UserName == registration.UserName)
+                    if(CheckExitsResult.UserName == ((registration.UserName).ToLower()))
                     {
                         return new JsonModel
                         {
                             Data = registration,
                             Message = ConstString.UserNameExits,
-                            StatusCode = StatusCodes.Status204NoContent
+                            StatusCode = StatusCodes.Status409Conflict,
                         };
+
                     }
-                    else
+                    if (CheckExitsResult.EmailId == ((registration.EmailId).ToLower()))
                     {
-                        return new JsonModel
-                        {
-                            Data = registration,
-                            Message = ConstString.EmailExits,
-                            StatusCode = StatusCodes.Status204NoContent
-                        };
+                       return new JsonModel
+                       {
+                           Data = registration,
+                           Message = ConstString.EmailExits,
+                           StatusCode = StatusCodes.Status409Conflict,
+                       };
                     }
                 }
                 else
@@ -80,7 +81,8 @@ namespace SocialMediaApis.Repository
                             StatusCode = StatusCodes.Status200OK,
                         };
 
-                    }catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         return new JsonModel
                         {
@@ -88,7 +90,14 @@ namespace SocialMediaApis.Repository
                             StatusCode = StatusCodes.Status406NotAcceptable,
                         };
                     }
-                }
+                }  
+                return new JsonModel
+                {
+                    Data = registration,
+                    Message = ConstString.UnKnowError,
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                };
+
             }
             catch(Exception ex)
             {
