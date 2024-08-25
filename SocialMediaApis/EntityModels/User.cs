@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SocialMediaApis.Models
 {
-    [Table("tbl_User")]
-    public class User
+    [Table("User")]
+    public class Users
     {
         [Key]
         public int Id { get; set; } 

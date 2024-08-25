@@ -3,6 +3,10 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System;
+using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SocialMediaApis.CommonMethod
 {
@@ -15,7 +19,7 @@ namespace SocialMediaApis.CommonMethod
             Configuration = configuration;
         }
 
-        public static string Encryptword(string clearText)
+        public string Encryptword(string clearText)
         {
             string encryptionKey = "AESHAPPIFOC76hdua";
             byte[] clearBytes = Encoding.Unicode.GetBytes(clearText);
@@ -36,5 +40,26 @@ namespace SocialMediaApis.CommonMethod
             }
             return clearText;
         }
+
+        public string GenerateToken(string user)
+        {
+            var authClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Key"]));
+
+            var token = new JwtSecurityToken(
+                issuer: Configuration["JWT:ValidIssuer"],
+                audience: Configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddMonths(12),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }

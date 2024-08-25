@@ -7,6 +7,10 @@ using Microsoft.OpenApi.Models;
 using SocialMediaApis.DBContext;
 using Microsoft.EntityFrameworkCore;
 using SocialMediaApis.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using SocialMediaApis.CommonMethod;
 
 namespace SocialMedia
 {
@@ -21,9 +25,45 @@ namespace SocialMedia
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // JWT configuration
+            var jwtKey = Configuration["Jwt:Key"];
+            var jwtIssuer = Configuration["Jwt:Issuer"];
+            var jwtAudience = Configuration["Jwt:Audience"];
+
+            // Add authentication
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                };
+            });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+            });
+
             services.AddControllers();
             services.AddHttpContextAccessor();
 
+            services.AddTransient<CommonMethods>();
             services.AddScoped<IUserRepository, UserRepository>();
 
             // Add Swagger configuration
