@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SocialMediaApis.Models;
 using SocialMediaApis.Repository;
+using static SocialMediaApis.Models.UserModel;
 
 namespace SocialMediaApis.Controllers
 {
@@ -19,6 +20,13 @@ namespace SocialMediaApis.Controllers
         public IActionResult Registation(Registration registration)
         {
             var result = _userRepository.UserRegistration(registration);
+            return new JsonResult(result) { StatusCode = (int)result.StatusCode };
+        }
+
+        [HttpPost("Login")]
+        public IActionResult Login(Login login)
+        {
+            var result = _userRepository.Login(login);
             return new JsonResult(result) { StatusCode = (int)result.StatusCode };
         }
     }

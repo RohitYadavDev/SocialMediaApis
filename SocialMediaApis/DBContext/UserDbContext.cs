@@ -8,6 +8,6 @@ namespace SocialMediaApis.DBContext
         public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
 
         //declare the model
-        public DbSet<User> users { get; set; }  
+        public DbSet<Users> users { get; set; }  
     }
 }

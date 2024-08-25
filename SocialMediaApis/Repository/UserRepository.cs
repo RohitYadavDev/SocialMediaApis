@@ -4,17 +4,21 @@ using SocialMediaApis.CommonMethod;
 using SocialMediaApis.DBContext;
 using SocialMediaApis.Models;
 using System;
+using System.Data;
 using System.Linq;
 using static SocialMediaApis.CommonMethod.CommonModel;
+using static SocialMediaApis.Models.UserModel;
 
 namespace SocialMediaApis.Repository
 {
     public class UserRepository : IUserRepository
     {
         public readonly UserDbContext _context;
-        public UserRepository(UserDbContext context)
+        public readonly CommonMethods _commonMethods;
+        public UserRepository(UserDbContext context, CommonMethods commonMethods)
         {
             _context = context;
+            _commonMethods = commonMethods;
         }
 
         public JsonModel UserRegistration(Registration registration)
@@ -42,7 +46,7 @@ namespace SocialMediaApis.Repository
                         {
                             Data = registration,
                             Message = ConstString.UserNameExits,
-                            StatusCode = StatusCodes.Status409Conflict,
+                            StatusCode = 210,
                         };
 
                     }
@@ -52,7 +56,7 @@ namespace SocialMediaApis.Repository
                        {
                            Data = registration,
                            Message = ConstString.EmailExits,
-                           StatusCode = StatusCodes.Status409Conflict,
+                           StatusCode = 210,
                        };
                     }
                 }
@@ -60,14 +64,14 @@ namespace SocialMediaApis.Repository
                 {
                     try
                     {
-                        var RegistrationResult = new User();              
+                        var RegistrationResult = new Users();              
                         RegistrationResult.FirstName = registration.FirstName;
                         RegistrationResult.LastName = registration.LastName;
 
                         //Store the EmailId And UserName casesenstive
                         RegistrationResult.EmailId = (registration.EmailId).ToLower();
                         RegistrationResult.UserName = (registration.UserName).ToLower();
-                        RegistrationResult.Password = CommonMethods.Encryptword(registration.Password);
+                        RegistrationResult.Password = _commonMethods.Encryptword(registration.Password);
                         RegistrationResult.CreateDate = DateTime.UtcNow;
                         RegistrationResult.UpdateDate = DateTime.UtcNow;
                         RegistrationResult.IsDeleted = false;
@@ -87,7 +91,7 @@ namespace SocialMediaApis.Repository
                         return new JsonModel
                         {
                             Message = "Registration Save Changes Error Message" + ex.Message,
-                            StatusCode = StatusCodes.Status406NotAcceptable,
+                            StatusCode = 210,
                         };
                     }
                 }  
@@ -104,7 +108,63 @@ namespace SocialMediaApis.Repository
                 return new JsonModel
                 {
                     Message = "Registration Error Message" + ex.Message,
-                    StatusCode = StatusCodes.Status406NotAcceptable,
+                    StatusCode = 210,
+                };
+            }
+        }
+        public JsonModel Login(Login login)
+        {
+            try
+            {
+                login.Password = _commonMethods.Encryptword(login.Password);
+                var userExits = _context.users.Where(x => x.UserName == (login.UserName).ToLower() && x.Password == login.Password).FirstOrDefault();
+                if (userExits != null)
+                {
+                    return new JsonModel
+                    {
+                        Data = userExits,
+                        Message = CommonMethod.ConstString.LoginSuccessfully,
+                        StatusCode = StatusCodes.Status200OK,
+                        AccessToken = _commonMethods.GenerateToken(login.UserName),
+                    };
+                }
+                else
+                {
+
+                    var userNameExits = _context.users.Where(x => x.UserName == (login.UserName).ToLower()).FirstOrDefault();
+                    var passwordExits = _context.users.Where(x => x.Password == (_commonMethods.Encryptword(login.Password))).FirstOrDefault();
+                    if (userNameExits == null && passwordExits == null)
+                    {
+                        return new JsonModel
+                        {
+                            Message = CommonMethod.ConstString.invalid,
+                            StatusCode = 201,
+                        };
+                    }
+                    else if (passwordExits == null)
+                    {
+                        return new JsonModel
+                        {
+                            Message = CommonMethod.ConstString.InvalidPassword,
+                            StatusCode = 201,
+                        };
+                    }
+                    else
+                    {
+                        return new JsonModel
+                        {
+                            Message = CommonMethod.ConstString.InvalidUserName,
+                            StatusCode = 201,
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonModel
+                {
+                    Message = CommonMethod.ConstString.UnKnowError,
+                    StatusCode = 201,
                 };
             }
         }
